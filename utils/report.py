@@ -43,7 +43,7 @@ def generate_pdf_report(state: ContractState) -> bytes:
 
     pdf.set_font("Helvetica", "B", 14)
     pdf.set_text_color(*color)
-    pdf.cell(0, 8, f"Overall Risk Score: {score}/10  —  {verdict}", ln=True)
+    pdf.cell(0, 8, f"Overall Risk Score: {score}/10  -  {verdict}", ln=True)
     pdf.ln(2)
 
     # ── Executive Summary ─────────────────────────────────────────────────────
@@ -112,4 +112,4 @@ def generate_pdf_report(state: ContractState) -> bytes:
     pdf.set_text_color(150, 150, 150)
     pdf.cell(0, 6, "ContractSense AI is not a substitute for qualified legal advice. Always consult a licensed attorney for binding decisions.", ln=True, align="C")
 
-    return pdf.output()
+    return bytes(pdf.output())

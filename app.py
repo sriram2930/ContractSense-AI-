@@ -29,8 +29,8 @@ st.markdown("""
     .badge-red  { background: #f8d7da; color: #842029; }
     .badge-yellow{ background: #fff3cd; color: #664d03; }
     .badge-green{ background: #d1e7dd; color: #0a3622; }
-    .redline    { background: #e8f4fd; border-left: 3px solid #0d6efd; padding: 0.6rem 0.8rem; border-radius: 6px; font-size: 0.88rem; }
-    .plain-eng  { background: #fff9e6; border-left: 3px solid #ffc107; padding: 0.6rem 0.8rem; border-radius: 6px; font-size: 0.88rem; }
+    .redline    { background: #0a2d4a; border-left: 3px solid #0d6efd; padding: 0.6rem 0.8rem; border-radius: 6px; font-size: 0.88rem; }
+    .plain-eng  { background: #4a3800; border-left: 3px solid #ffc107; padding: 0.6rem 0.8rem; border-radius: 6px; font-size: 0.88rem; }
     .stProgress > div > div { border-radius: 8px; }
 </style>
 """, unsafe_allow_html=True)

@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 NIM_BASE_URL = "https://integrate.api.nvidia.com/v1"
-MODEL = "nvidia/llama-3.1-nemotron-70b-instruct"
+MODEL = "meta/llama-3.1-8b-instruct" 
 
 
 def get_client() -> OpenAI:
