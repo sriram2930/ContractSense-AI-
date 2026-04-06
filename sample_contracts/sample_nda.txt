@@ -1,0 +1,30 @@
+NON-DISCLOSURE AGREEMENT
+
+This Non-Disclosure Agreement ("Agreement") is entered into as of the date of signing between TechCorp Inc. ("Company") and the undersigned individual ("Recipient").
+
+1. CONFIDENTIAL INFORMATION
+The Recipient agrees to keep strictly confidential any and all information disclosed by the Company, including but not limited to business strategies, financial data, technical specifications, customer lists, and any other proprietary information, whether disclosed orally, in writing, or by any other means. This obligation shall survive indefinitely, with no time limitation, even after any business relationship between the parties has ended.
+
+2. INDEMNIFICATION
+The Recipient shall indemnify, defend, and hold harmless the Company and its officers, directors, employees, agents, and successors from any and all claims, damages, losses, costs, and expenses (including reasonable attorneys' fees) arising from or related to any breach of this Agreement by the Recipient, regardless of fault or negligence on the part of the Company.
+
+3. INTELLECTUAL PROPERTY ASSIGNMENT
+Any ideas, inventions, discoveries, improvements, or works of authorship conceived or developed by the Recipient, whether or not during working hours, whether or not related to the Company's business, and whether or not using the Company's resources, shall be the sole and exclusive property of the Company. The Recipient hereby irrevocably assigns all rights, title, and interest in such intellectual property to the Company in perpetuity.
+
+4. NON-COMPETE
+During the term of any engagement with the Company and for a period of five (5) years thereafter, the Recipient shall not, directly or indirectly, engage in, own, manage, operate, control, or participate in any business that competes with the Company in any geographic area where the Company conducts business, which includes the entire United States of America and any country in which the Company has clients.
+
+5. GOVERNING LAW AND DISPUTE RESOLUTION
+This Agreement shall be governed by and construed in accordance with the laws of the State of Delaware. Any disputes arising under this Agreement shall be resolved exclusively through binding arbitration conducted by the American Arbitration Association. The Recipient waives any right to a jury trial and agrees to bear all costs of arbitration.
+
+6. TERMINATION
+The Company may terminate any engagement with the Recipient at any time, for any reason or no reason, without notice and without liability. Upon termination, the Recipient's confidentiality obligations under Section 1 shall remain in full force and effect indefinitely.
+
+7. PAYMENT TERMS
+Payment for services, if any, shall be made at the Company's discretion. The Company reserves the right to withhold payment in the event of any alleged breach of this Agreement, as determined solely by the Company.
+
+8. ENTIRE AGREEMENT
+This Agreement constitutes the entire agreement between the parties with respect to its subject matter and supersedes all prior agreements, understandings, and representations. This Agreement may only be amended in writing signed by an authorized officer of the Company.
+
+RECIPIENT SIGNATURE: ___________________________
+DATE: ___________________________
