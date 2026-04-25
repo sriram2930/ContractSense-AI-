@@ -79,13 +79,13 @@ def clause_extractor_node(state: ContractState) -> ContractState:
     type_system = (
         "You are a legal document classifier. Based on the contract text below, "
         "identify the contract type. Return ONLY one of these exact strings: "
-        "NDA, Employment, Freelance, SaaS, Other"
+        "NDA, Employment, Freelance, SaaS, Lease, Other"
     )
     try:
         contract_type = call_nim(
             type_system, state["raw_text"][:2000], max_tokens=10
         ).strip()
-        if contract_type not in ["NDA", "Employment", "Freelance", "SaaS"]:
+        if contract_type not in ["NDA", "Employment", "Freelance", "SaaS", "Lease"]:
             contract_type = "Other"
     except Exception:
         contract_type = "Other"
@@ -99,7 +99,7 @@ CLAUSE_SYSTEM = """You are an expert contract lawyer protecting the interests of
 
 For the given clause, return a JSON object with EXACTLY these keys:
 {
-  "clause_type": "<type, e.g. Indemnification, Non-Compete, IP Assignment, Payment, Termination, Liability Cap, Confidentiality, Governing Law, Arbitration, Other>",
+  "clause_type": "<type, e.g. Indemnification, Non-Compete, IP Assignment, Payment, Termination, Liability Cap, Confidentiality, Governing Law, Arbitration, Security Deposit, Early Termination, Subletting, Other>",
   "risk_level": "<red | yellow | green>",
   "risk_score": <integer 1-10, where 10 is most dangerous to the signer>,
   "plain_english": "<2-3 sentence explanation of what this clause means for the signer in simple language>",
@@ -161,6 +161,21 @@ def risk_classifier_node(state: ContractState) -> ContractState:
 
 # ── Node 3: Jurisdiction Agent + Web Search MCP ───────────────────────────────
 
+# All 50 US states for validation — prevents hallucinated non-state values
+KNOWN_STATES = [
+    "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
+    "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho",
+    "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana",
+    "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota",
+    "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada",
+    "New Hampshire", "New Jersey", "New Mexico", "New York",
+    "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon",
+    "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota",
+    "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington",
+    "West Virginia", "Wisconsin", "Wyoming",
+]
+
+
 def _web_search_mcp(query: str) -> str:
     """
     Web Search MCP tool call.
@@ -185,12 +200,17 @@ def jurisdiction_agent_node(state: ContractState) -> ContractState:
     """
     Detects governing law from analyses, fires Web Search MCP for
     real-time state law context, and enriches risky clause flags.
+
+    Two-stage detection:
+    Stage 1a: Look for a dedicated Governing Law clause in analyses
+    Stage 1b: Fallback — scan raw contract text for state law citations
+              (handles CA standard leases, state-specific forms, etc.)
     """
     analyses = state["analyses"]
     jurisdiction = "Unknown"
     jurisdiction_notes = ""
 
-    # Step 1 — Find governing law clause
+    # ── Stage 1a: Check for dedicated Governing Law clause ────────────────────
     for analysis in analyses:
         if analysis["clause_type"] == "Governing Law":
             system = (
@@ -199,21 +219,46 @@ def jurisdiction_agent_node(state: ContractState) -> ContractState:
                 "If no US state is mentioned, return 'Unknown'."
             )
             try:
-                jurisdiction = call_nim(
+                result = call_nim(
                     system, analysis["clause_text"][:500], max_tokens=10
                 ).strip()
+                if result in KNOWN_STATES:
+                    jurisdiction = result
             except Exception:
-                jurisdiction = "Unknown"
+                pass
             break
 
-    # Step 2 — Web Search MCP call for real-time legal context
+    # ── Stage 1b: Fallback — scan raw text for state law references ───────────
+    # Catches contracts like California standard leases (C.A.R. Form LR) that
+    # reference "California Civil Code § 1950.5" throughout without a single
+    # dedicated Governing Law clause.
+    if jurisdiction == "Unknown":
+        system = (
+            "You are a legal document analyzer. Read this contract and identify "
+            "which US state's laws govern it. Look for any of: explicit state "
+            "names in legal citations (e.g. 'California Civil Code'), state-specific "
+            "form identifiers (e.g. 'C.A.R. Form' = California), governing law "
+            "language, or state statutes referenced. "
+            "Return ONLY the state name, e.g. 'California'. "
+            "If truly unknown, return 'Unknown'."
+        )
+        try:
+            result = call_nim(
+                system, state["raw_text"][:3000], max_tokens=10
+            ).strip()
+            if result in KNOWN_STATES:
+                jurisdiction = result
+        except Exception:
+            jurisdiction = "Unknown"
+
+    # ── Stage 2: Web Search MCP for real-time legal context ──────────────────
     if jurisdiction != "Unknown":
-        query = f"{jurisdiction} state employment contract law non-compete enforceability 2024"
+        query = f"{jurisdiction} tenant landlord rental agreement law rights 2024"
         search_result = _web_search_mcp(query)
 
         system = (
-            f"You are a legal advisor. Based on this information about {jurisdiction} contract law, "
-            "write 2 sentences explaining the key risks for someone signing a contract "
+            f"You are a legal advisor. Based on this information about {jurisdiction} law, "
+            "write 2 sentences explaining the key legal context for someone signing a contract "
             f"governed by {jurisdiction} law. Be specific and practical."
         )
         try:
@@ -225,9 +270,12 @@ def jurisdiction_agent_node(state: ContractState) -> ContractState:
     else:
         jurisdiction_notes = "Governing law not detected. Review contract jurisdiction carefully before signing."
 
-    # Step 3 — Enrich analyses with jurisdiction flags
+    # ── Stage 3: Enrich clause analyses with jurisdiction flags ──────────────
     updated_analyses = []
-    HIGH_RISK_IN_SOME_STATES = ["Non-Compete", "IP Assignment", "Arbitration", "Indemnification"]
+    HIGH_RISK_IN_SOME_STATES = [
+        "Non-Compete", "IP Assignment", "Arbitration", "Indemnification",
+        "Early Termination", "Security Deposit", "Subletting",
+    ]
     STATE_FRIENDLY   = ["California", "Minnesota", "North Dakota", "Oklahoma"]
     STATE_UNFRIENDLY = ["Delaware", "Florida", "Texas", "New York"]
 
@@ -235,7 +283,7 @@ def jurisdiction_agent_node(state: ContractState) -> ContractState:
         flag = ""
         if analysis["clause_type"] in HIGH_RISK_IN_SOME_STATES:
             if jurisdiction in STATE_FRIENDLY:
-                flag = f"Note: {jurisdiction} has strong worker protections — this clause may be unenforceable."
+                flag = f"Note: {jurisdiction} has strong tenant/worker protections — this clause may be limited or unenforceable."
             elif jurisdiction in STATE_UNFRIENDLY:
                 flag = f"Warning: {jurisdiction} enforces this clause strictly — negotiate carefully."
         updated_analyses.append({**analysis, "jurisdiction_flag": flag})
